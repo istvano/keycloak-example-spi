@@ -1,0 +1,68 @@
+version: '3'
+
+volumes:
+  mysql_data:
+    driver: local
+
+services:
+  mysql:
+    extends:
+        file: ./tools/docker/common-services.yml
+        service: mysql
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    # Copy-pasted from https://github.com/docker-library/mariadb/issues/94
+    # healthcheck:
+    #  test: ["CMD", "mysqladmin", "ping", "--silent"]
+
+  adminer:
+    extends:
+        file: ./tools/docker/common-services.yml
+        service: adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+    depends_on:
+      - mysql
+
+  keycloak:
+    extends:
+        file: ./tools/docker/common-services.yml
+        service: keycloak
+    command: ["-b", "0.0.0.0", "-Dkeycloak.migration.strategy=OVERWRITE_EXISTING"]
+    environment:
+      KEYCLOAK_IMPORT: /tmp/demo-realm.json
+      JAVA_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,address=*:5005,suspend=n
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+#      JGROUPS_DISCOVERY_PROTOCOL: JDBC_PING
+#      JGROUPS_DISCOVERY_PROPERTIES: datasource_jndi_name=java:jboss/datasources/KeycloakDS,info_writer_sleep_time=500,initialize_sql="CREATE TABLE IF NOT EXISTS JGROUPSPING ( own_addr varchar(200) NOT NULL, cluster_name varchar(200) NOT NULL, created timestamp default current_timestamp, ping_data BYTEA, constraint PK_JGROUPSPING PRIMARY KEY (own_addr, cluster_name))"
+    volumes:
+      - ./src/main/resources/realms/demo-realm.json:/tmp/demo-realm.json
+      - ./src/main/resources/cli:/opt/jboss/startup-scripts
+      - ./assembly/target/keycloak/standalone/deployments:/opt/jboss/keycloak/standalone/deployments
+    ports:
+      - 9990:9990
+      - 5005:5005
+    depends_on:
+      - mysql
+      - smtp
+    labels:
+      traefik.enable: true
+      traefik.port: 8080
+      traefik.protocol: http
+      traefik.frontend.rule: Host:localhost
+      traefik.frontend.passHostHeader: true
+      # traefik.backend.loadbalancer.stickiness: true
+
+  smtp:
+    extends:
+        file: ./tools/docker/common-services.yml
+        service: smtp

@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  traefik:
+    extends:
+        file: ./tools/docker/common-services.yml
+        service: traefik

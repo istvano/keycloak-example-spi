@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  traefik:
+    image: library/traefik:alpine
+    container_name: traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      --logLevel=ERROR
+      --api.dashboard
+      --docker
+      --entrypoints="Name:http Address::80"
+      --defaultentrypoints="http"
+    ports:
+      - 80:80
+      - 3000:8080
+
+  mysql:
+    image: mysql:5.7
+    # Copy-pasted from https://github.com/docker-library/mariadb/issues/94
+    # healthcheck:
+    #  test: ["CMD", "mysqladmin", "ping", "--silent"]
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 9090:8080
+    environment:
+      ADMINER_DESIGN: nette
+
+
+  keycloak:
+    image: urbanandco/keycloak-training:11.0.3
+    environment:
+      KEYCLOAK_STATISTICS: all
+      KEYCLOAK_LOGLEVEL: INFO
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: password
+      KEYCLOAK_STATIC_MAX_AGE: -1
+      KEYCLOAK_THEME_CACHE: 'false'
+      CUSTOM_LOG_LEVEL: DEBUG
+    ports:
+      - 8080:8080
+      - 8443:8443
+
+  smtp:
+    image: djfarrelly/maildev:1.1.0
+    ports:
+    - "8081:80"
+    - "25"
+
+  swagger:
+    image: swaggerapi/swagger-editor:v3.18.1
+    ports:
+      - 8089:8080

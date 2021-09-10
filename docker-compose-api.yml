@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  restapi:
+    image: stoplight/prism:4
+    command: >
+      mock -h 0.0.0.0 /tmp/openapi.yaml
+    volumes:
+      - ./user-api-schema/src/main/resources/openapi.yaml:/tmp/openapi.yaml
+    ports:
+      - 4010:4010
+
+  swagger:
+    extends:
+        file: ./tools/docker/common-services.yml
+        service: swagger
+    environment:
+      SWAGGER_FILE: /tmp/openapi.yaml
+    volumes:
+      - ./user-api-schema/src/main/resources/openapi.yaml:/tmp/openapi.yaml
+    depends_on:
+      - restapi
