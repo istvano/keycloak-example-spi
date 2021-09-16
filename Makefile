@@ -96,6 +96,16 @@ mvn/build-auth:
 mvn/deploy-auth:
 	(cd ./authenticator-ear && mvn clean wildfly:deploy -Dwildfly.username=keycloak -Dwildfly.password=keycloak)
 
+## Build authenticator providers only
+.PHONY: mvn/build-user
+mvn/build-user:
+	(cd ./user-provider-jar && mvn clean install -DskipTests)
+
+## Deploy authenticator providers only
+.PHONY: mvn/deploy-user
+mvn/deploy-user:
+	(cd ./user-provider-ear && mvn clean wildfly:deploy -Dwildfly.username=keycloak -Dwildfly.password=keycloak)
+
 ## Get a token using password
 .PHONY: keycloak/login
 keycloak/login:
