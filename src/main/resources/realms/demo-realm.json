@@ -838,7 +838,7 @@
   "loginWithEmailAllowed": true,
   "loginTheme": "keycloak",
   "resetPasswordAllowed": true,
-  "accountTheme": "keycloak.v2",
+  "accountTheme": "keycloak",
   "adminTheme": "keycloak",
   "emailTheme": "keycloak",
   "keycloakVersion": "11.0.3"
